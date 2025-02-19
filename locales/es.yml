@@ -1,0 +1,24 @@
+menu:
+  start_game: "Iniciar Juego"
+  settings: "Configuraciones"
+  character_select: "Seleccionar Personaje"
+  exit: "Salir"
+
+character_select:
+  title: "Selecciona Tu Personaje"
+
+settings:
+  sound: "Sonido"
+  language: "Idioma"
+  difficulty: "Dificultad"
+  back: "Volver"
+
+difficulty:
+  easy: "Fácil"
+  medium: "Medio"
+  hard: "Difícil"
+
+languages:
+  en: "Inglés"
+  es: "Español"
+  pt: "Portugués"
