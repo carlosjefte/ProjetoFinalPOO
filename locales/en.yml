@@ -1,24 +1,24 @@
 menu:
-  start_game: "Start Game"
-  settings: "Settings"
-  character_select: "Character Select"
-  exit: "Exit"
+  start_game: "START GAME"
+  settings: "SETTINGS"
+  character_select: "SELECT CHARACTER"
+  exit: "EXIT"
 
 character_select:
-  title: "Select Your Character"
+  title: "SELECT YOUR CHARACTER"
 
 settings:
-  sound: "Sound"
-  language: "Language"
-  difficulty: "Difficulty"
-  back: "Back"
+  sound: "SOUND"
+  language: "LANGUAGE"
+  difficulty: "DIFFICULTY"
+  back: "BACK"
 
 difficulty:
-  easy: "Easy"
-  medium: "Medium"
-  hard: "Hard"
+  easy: "EASY"
+  medium: "MEDIUM"
+  hard: "HARD"
 
 languages:
-  en: "English"
-  es: "Spanish"
-  pt: "Portuguese"
+  en: "ENGLISH"
+  es: "SPANISH"
+  pt: "PORTUGUESE"

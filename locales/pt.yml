@@ -1,24 +1,24 @@
 menu:
-  start_game: "Iniciar Jogo"
-  settings: "Configurações"
-  character_select: "Selecionar Personagem"
-  exit: "Sair"
+  start_game: "INICIAR JOGO"
+  settings: "CONFIGURAÇÕES"
+  character_select: "SELECIONAR PERSONAGEM"
+  exit: "SAIR"
 
 character_select:
-  title: "Selecione Seu Personagem"
+  title: "SELECIONE SEU PERSONAGEM"
 
 settings:
-  sound: "Som"
-  language: "Idioma"
-  difficulty: "Dificuldade"
-  back: "Voltar"
+  sound: "SOM"
+  language: "IDIOMA"
+  difficulty: "DIFICULDADE"
+  back: "VOLTAR"
 
 difficulty:
-  easy: "Fácil"
-  medium: "Médio"
-  hard: "Difícil"
+  easy: "FÁCIL"
+  medium: "MÉDIO"
+  hard: "DIFÍCIL"
 
 languages:
-  en: "Inglês"
-  es: "Espanhol"
-  pt: "Português"
+  en: "INGLÊS"
+  es: "ESPANHOL"
+  pt: "PORTUGUÊS"

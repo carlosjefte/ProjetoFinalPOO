@@ -1,19 +1,24 @@
 import pygame
 import yaml
+import sys
 import os
 import json
 
 ROOT_PATH = os.getenv("ROOT_PATH")
 LANG_PATH = os.path.join(ROOT_PATH, "locales")
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 class SettingsMenu:
     def __init__(self):
         """Inicializa o menu de configurações."""
         self.main_update = None
+        self.MENUS = []
         self.font = None
         self.options = ["sound", "language", "difficulty", "back"]
+        self.background = pygame.image.load(os.path.join(ROOT_PATH, "assets", "sprites", "bar", "settings-background.png"))
         self.selected_option = 0
         self.cooldown_click = 0
+        self.open = False
         self.option_positions = []
 
         # Carrega as configurações e os textos do idioma
@@ -44,7 +49,9 @@ class SettingsMenu:
 
     def update(self, params):
         """Gerencia entrada do usuário para ajustar as configurações."""
-        if self.main_update is None:
+        if len(self.MENUS) == 0:
+            self.MENUS = params["menus"]
+        if not self.main_update:
             self.main_update = params["main_update"]
 
         if params["key_events"] == pygame.K_DOWN:
@@ -52,10 +59,10 @@ class SettingsMenu:
         elif params["key_events"] == pygame.K_UP:
             self.selected_option = (self.selected_option - 1) % len(self.options)
         elif params["key_events"] == pygame.K_RETURN:  # Enter confirma
-            return self.select_option()
+            self.select_option()
         elif params["mouse_events"]["buttons"][0] and self.cooldown_click <= 0:
             self.cooldown_click = 2
-            return self.select_option()
+            self.select_option()
 
         # Navegação com mouse
         mouse_x, mouse_y = params["mouse_events"]["pos"]
@@ -64,9 +71,6 @@ class SettingsMenu:
                 self.selected_option = i
 
         self.cooldown_click -= 1 if self.cooldown_click > 0 else 0
-        self.draw(params["screen"])
-
-        return self
 
     def select_option(self):
         """Altera configurações ou volta ao menu principal."""
@@ -84,18 +88,23 @@ class SettingsMenu:
             current_index = levels_translate.index(self.settings["difficulty"])
             self.settings["difficulty"] = levels_translate[(current_index + 1) % len(levels)]
         elif option == "back":
-            return None  # Volta ao menu principal
+            self.main_update({"current_menu": self.MENUS[0]}) 
 
         self.save_settings()
-
-        return self
 
     def draw(self, screen):
         """Desenha o menu de configurações."""
         if self.font is None:
-            self.font = pygame.font.Font(None, 50)
+            from assets.fonts.title_font import bitmap_font
+            self.font = bitmap_font
 
-        screen.fill("gray")
+        # check if background size is the same as screen size
+        screen_width, screen_height = screen.get_size()
+        if self.background.get_height() != screen_height:
+            factor = screen_width - self.background.get_height()
+            self.background = pygame.transform.scale(self.background, (self.background.get_width() + factor, screen_height))
+
+        screen.blit(self.background, (0, 0))
 
         self.option_positions = []
         for i, option in enumerate(self.options):
@@ -105,12 +114,16 @@ class SettingsMenu:
                 value = self.settings[option]
                 if option == "difficulty":
                     value = self.texts["difficulty"].get(value, value)
-                text = f"{self.texts['settings'][option]}: {value}"
+                text = f"{self.texts['settings'][option]}: {value.upper()}"
             else:
                 text = self.texts["settings"]["back"]
 
-            text_surface = self.font.render(text, True, color)
+            text_surface = self.font.render(text, color, 32)
             text_rect = text_surface.get_rect(center=(640, 300 + i * 60))
             self.option_positions.append((text_rect.x, text_rect.y, text_rect.width, text_rect.height))
 
             screen.blit(text_surface, text_rect)
+
+    def late_update(self, params):
+        """Método opcional chamado após o update()."""
+        self.draw(params["screen"])

@@ -34,6 +34,10 @@ class Object:
             self.gravity_component.apply_gravity(dt)
             self.y += self.gravity_component.velocity_y
 
+    def late_update(self, params):
+        """Verifica colisão com outros objetos."""
+        self.draw(params["screen"])
+
     def draw(self, screen):
         """Desenha o objeto na tela com a escala definida por width e height."""
         sprite = self.animation_handler.get_sprite()
