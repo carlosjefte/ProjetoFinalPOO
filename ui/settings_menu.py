@@ -54,11 +54,11 @@ class SettingsMenu:
         if not self.main_update:
             self.main_update = params["main_update"]
 
-        if params["key_events"] == pygame.K_DOWN:
+        if params["key_events"]["key"] == pygame.K_DOWN:
             self.selected_option = (self.selected_option + 1) % len(self.options)
-        elif params["key_events"] == pygame.K_UP:
+        elif params["key_events"]["key"] == pygame.K_UP:
             self.selected_option = (self.selected_option - 1) % len(self.options)
-        elif params["key_events"] == pygame.K_RETURN:  # Enter confirma
+        elif params["key_events"]["key"] == pygame.K_RETURN:  # Enter confirma
             self.select_option()
         elif params["mouse_events"]["buttons"][0] and self.cooldown_click <= 0:
             self.cooldown_click = 2

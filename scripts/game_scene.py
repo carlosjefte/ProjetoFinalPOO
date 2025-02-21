@@ -17,4 +17,8 @@ class GameScene:
         """Atualiza todos os objetos na cena."""
         for obj in self.objects:
             obj.update(params)
+
+    def late_update(self, params):
+        """Atualiza todos os objetos na cena após o update."""
+        for obj in self.objects:
             obj.late_update(params)

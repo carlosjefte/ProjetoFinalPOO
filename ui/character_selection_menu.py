@@ -115,13 +115,13 @@ class CharacterSelectMenu:
         if self.selected_character is None:
             self.selected_character = 0
   
-        if params["key_events"] == pygame.K_LEFT:
+        if params["key_events"]["key"] == pygame.K_LEFT:
             self.selected_character = (self.selected_character - 1) % len(self.characters)
             self.load_selected_character()
-        elif params["key_events"] == pygame.K_RIGHT:
+        elif params["key_events"]["key"] == pygame.K_RIGHT:
             self.selected_character = (self.selected_character + 1) % len(self.characters)
             self.load_selected_character()
-        elif params["key_events"] == pygame.K_RETURN:  # Enter confirma a escolha
+        elif params["key_events"]["key"] == pygame.K_RETURN:  # Enter confirma a escolha
             self.confirm_selection(params)
         elif params["mouse_events"]["buttons"][0] == True and self.cooldown_click <= 0:
             self.cooldown_click = 2
@@ -195,8 +195,8 @@ class CharacterSelectMenu:
         if self.animation_handler:
             current_sprite = self.animation_handler.get_sprite()
             if current_sprite:
-                width = self.character_instance.width * 3
-                height = self.character_instance.height * 3
+                width = self.character_instance.width * 1.5
+                height = self.character_instance.height * 1.5
 
                 scaled_sprite = pygame.transform.scale(current_sprite, (width, height))
                 sprite_rect = scaled_sprite.get_rect(center=(640, 440))

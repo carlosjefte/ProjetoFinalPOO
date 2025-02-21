@@ -18,9 +18,11 @@ class Object:
         """
         self.x = x
         self.y = y
+        self.width = width
+        self.height = height
         self.animation_handler = AnimationHandler(animations=animations)
         self.gravity_component = GravityComponent() if use_gravity else None
-        self.collision_component = CollisionComponent(self, width, height) if use_collision else None
+        self.collision_component = CollisionComponent(self, height, width) if use_collision else None
 
     def set_animation(self, animation_name):
         """Define a animação atual do objeto."""
@@ -42,9 +44,5 @@ class Object:
         """Desenha o objeto na tela com a escala definida por width e height."""
         sprite = self.animation_handler.get_sprite()
         if sprite:
-            if self.collision_component:  # 🔥 Se houver colisão, usamos o tamanho definido
-                scaled_sprite = pygame.transform.scale(sprite, (self.collision_component.width, self.collision_component.height))
-            else:
-                scaled_sprite = sprite  # Usa o tamanho original se não houver colisão
-
-            screen.blit(scaled_sprite, (self.x, self.y))
+            scaled_sprite = pygame.transform.scale(sprite, (self.width, self.height))
+            screen.blit(scaled_sprite, (self.x - self.width // 2, self.y - self.height // 2))

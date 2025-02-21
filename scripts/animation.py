@@ -33,7 +33,7 @@ class Animation:
         """Atualiza o frame da animação respeitando a velocidade e o loop."""
 
         if self.current_frame < len(self.frames) - 1 or self.loop:
-            self.animation_time += 1 * velocity_factor if self.use_velocity else 1
+            self.animation_time += 1 * velocity_factor if self.use_velocity else 0.05
             if self.animation_time >= self.animation_speed:
                 self.animation_time = 0
                 if self.loop:
@@ -59,3 +59,8 @@ class Animation:
         if self.flipped:
             frame = pygame.transform.flip(frame, True, False)
         return frame
+
+    def reset(self):
+        """Reinicia a animação."""
+        self.current_frame = 0
+        self.animation_time = 0

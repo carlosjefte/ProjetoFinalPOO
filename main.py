@@ -63,13 +63,15 @@ class Main:
         self.FADE_SURFACE.fill((0, 0, 0))
         
         while running:
-            key_event = None
+            key_event = {"key": None, "type": None}
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
                     break
                 elif event.type == pygame.KEYDOWN:
-                    key_event = event.key
+                    key_event = {"key": event.key, "type": pygame.KEYDOWN}
+                elif event.type == pygame.KEYUP:
+                    key_event = {"key": event.key, "type": pygame.KEYUP}
 
             pygame.display.flip()
             mouse_pressed_event = pygame.mouse.get_pressed()
@@ -77,7 +79,6 @@ class Main:
                 mouse_pressed_event = (False, False, False)
             else:
                 click_cooldown = 5
-
             update_params = {
                 "dt": dt,
                 "screen": screen,

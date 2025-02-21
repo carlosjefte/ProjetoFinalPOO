@@ -87,7 +87,6 @@ class MainMenu:
     def update(self, params):
         """Gerencia entrada do usuário e atualiza a cena."""
         screen = params["screen"]
-        self.update_background(screen)
 
         self.SETTINGS = json.loads(os.environ["SETTINGS"])
 
@@ -107,11 +106,11 @@ class MainMenu:
         if not self.MENUS:
             self.MENUS = params["menus"]
 
-        if params["key_events"] == pygame.K_DOWN:
+        if params["key_events"]["key"] == pygame.K_DOWN:
             self.selected_option = (self.selected_option + 1) % len(self.options)
-        elif params["key_events"] == pygame.K_UP:
+        elif params["key_events"]["key"] == pygame.K_UP:
             self.selected_option = (self.selected_option - 1) % len(self.options)
-        elif params["key_events"] == pygame.K_RETURN:
+        elif params["key_events"]["key"] == pygame.K_RETURN:
             self.select_option(params)
 
         if params["mouse_events"]["buttons"][0] == True and self.cooldown_click <= 0:
@@ -180,4 +179,5 @@ class MainMenu:
     
     def late_update(self, params):
         """Método chamado após o update()."""
+        self.update_background(params["screen"])
         self.draw(params["screen"])
