@@ -5,11 +5,13 @@ from scripts.gravity_component import GravityComponent
 from scripts.collision_component import CollisionComponent
 
 class Character(Object):
-    def __init__(self, x, y, width, height, animations, use_gravity=False, min_y=0, max_y=0):
+    def __init__(self, x, y, width, height, animations, use_gravity=False, min_y=0, max_y=0, speed=5):
         super().__init__(x=x, y=y, width=width, height=height, animations=animations, use_gravity=use_gravity, use_collision=True)
+        self.width = width * animations["idle"].max_width
+        self.height = height * animations["idle"].max_height
         self.velocity_x = 0
         self.velocity_y = 0
-        self.walk_speed = 5
+        self.walk_speed = speed
         self.max_y = max_y  # 🔥 Posição do chão
         self.min_y = min_y
         self.speed = self.walk_speed
@@ -109,11 +111,23 @@ class Character(Object):
         self.y = y
 
     def draw(self, screen):
-        """Desenha o personagem na tela."""
+        """Desenha o personagem na tela mantendo um tamanho fixo e alinhado pela base."""
         sprite = self.animation_handler.get_sprite()
         if sprite:
-            scaled_sprite = pygame.transform.scale(sprite, (self.width, self.height))
-            screen.blit(scaled_sprite, (self.x - self.width // 2, self.y - self.height // 2))
+            original_width, original_height = sprite.get_size()
+
+            # Definir um tamanho fixo para altura
+            scale_factor = self.height / original_height  # Escala baseada na altura fixa
+            new_width = int(original_width * scale_factor)
+            new_height = self.height  # Mantém a altura fixa
+
+            scaled_sprite = pygame.transform.scale(sprite, (new_width, new_height))
+
+            # Fixar a base do personagem no mesmo Y
+            x_pos = self.x - new_width // 2
+            y_pos = self.y - new_height // 2
+
+            screen.blit(scaled_sprite, (x_pos, y_pos))
 
     def late_update(self, params):
         """Atualização tardia para ajustar a posição do personagem."""

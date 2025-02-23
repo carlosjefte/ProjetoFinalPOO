@@ -16,16 +16,14 @@ from scripts.animation_handler import AnimationHandler
 class CharacterSelectMenu:
     def __init__(self):
         """Inicializa o menu de seleção de personagens."""
-        self.settings = self.load_settings()
+        self.load_settings()
         self.texts = self.load_language(self.settings["language"])
         self.background = pygame.image.load(os.path.join(ROOT_PATH, "assets", "sprites", "luxurious_building", "character-selection-background.png"))
         self.MENUS = []
         self.characters = []
         self.selected_character = 0
         self.character_positions = []
-        self.font = None  # 🔥 A fonte será inicializada apenas quando o pygame já estiver rodando
-        self.current_sprite = None
-        self.character_instance = None
+        self.font = None
         self.animation_handler = None
         self.cooldown_click = 0
         self.current_language = self.settings["language"]
@@ -41,8 +39,22 @@ class CharacterSelectMenu:
         return {}
 
     def load_settings(self):
-        """Carrega as configurações do ENV ou usa valores padrão."""
-        return json.loads(os.environ["SETTINGS"])
+        """Carrega as configurações do jogo, incluindo o personagem selecionado."""
+        if "SETTINGS" in os.environ:
+          self.settings = json.loads(os.environ["SETTINGS"])
+          print("🔄 Configurações carregadas com sucesso!")
+        else:
+            self.settings = {"sound": 100, "language": "en", "difficulty": "normal", "selected_character": None}
+            self.save_settings(self.settings)
+            print("⚠️ Nenhuma configuração encontrada. Criando padrão.")
+
+        # Se houver um personagem salvo, define como o selecionado
+        selected_character_name = self.settings.get("selected_character")
+        if selected_character_name:
+            print(f"🟢 Carregando personagem salvo: {selected_character_name}")
+            self.SELECTED_CHARACTER = selected_character_name  # Nome do personagem salvo
+
+        os.environ["SETTINGS"] = json.dumps(self.settings)
 
     def load_characters(self):
         """Carrega automaticamente todos os personagens da pasta assets/characters/"""
@@ -56,50 +68,36 @@ class CharacterSelectMenu:
         for file in os.listdir(characters_path):
             if file.endswith(".py") and file != "__init__.py":
                 file_path = os.path.join(characters_path, file)
-                module_name = file[:-3]  # Remove o .py do nome do arquivo
+                module_name = file[:-3]
 
                 try:
                     spec = importlib.util.spec_from_file_location(module_name, file_path)
                     module = importlib.util.module_from_spec(spec)
-                    spec.loader.exec_module(module)  # 🔥 Executa o módulo
+                    spec.loader.exec_module(module)
 
                     for attr in dir(module):
                         obj = getattr(module, attr)
                         if isinstance(obj, type) and issubclass(obj, Character) and obj is not Character:
-                            characters.append((attr, module_name))  # 🔥 Salva nome e nome do módulo
+                            character_class = obj
+                            character_instance = character_class()
+                            animation_handler = character_instance.animation_handler
+                            animation_handler.set_animation("idle")
+                            characters.append({
+                                "name": attr.upper(),
+                                "animation_handler": animation_handler,
+                                "instance": character_instance
+                            })
 
+                            if self.SELECTED_CHARACTER == attr.upper():
+                                self.selected_character = len(characters) - 1
                 except Exception as e:
                     print(f"⚠️ Erro ao carregar {file}: {e}")
-        
+                    traceback.print_exc()
+
         return characters
-
-    def load_selected_character(self):
-        """Carrega a animação idle do personagem selecionado."""
-        if not self.characters:
-            return
-        
-        character_name, module_name = self.characters[self.selected_character]
-
-        try:
-            # 🔥 Importa o módulo dinamicamente
-            module = importlib.import_module(f"assets.characters.{module_name}")
-
-            # 🔥 Obtém a classe do personagem
-            character_class = getattr(module, character_name)
-            self.character_instance = character_class()
-
-            self.animation_handler = self.character_instance.animation_handler
-            self.animation_handler.set_animation("idle")  # 🔥 Define a animação inicial
-
-        except Exception as e:
-            print(f"⚠️ Erro ao carregar personagem {character_name}: {e}")
-            traceback.print_exc()
-            self.character_instance = None
-            self.animation_handler = None
 
     def update(self, params):
         """Gerencia entrada do usuário para selecionar personagens."""
-
         self.load_settings()
 
         if self.current_language != self.settings["language"]:
@@ -109,99 +107,123 @@ class CharacterSelectMenu:
 
         if len(self.MENUS) == 0:
             self.MENUS = params["menus"]
-            self.characters = self.load_characters()
-            self.load_selected_character()
-
-        if self.selected_character is None:
-            self.selected_character = 0
-  
-        if params["key_events"]["key"] == pygame.K_LEFT:
-            self.selected_character = (self.selected_character - 1) % len(self.characters)
-            self.load_selected_character()
-        elif params["key_events"]["key"] == pygame.K_RIGHT:
-            self.selected_character = (self.selected_character + 1) % len(self.characters)
-            self.load_selected_character()
-        elif params["key_events"]["key"] == pygame.K_RETURN:  # Enter confirma a escolha
-            self.confirm_selection(params)
-        elif params["mouse_events"]["buttons"][0] == True and self.cooldown_click <= 0:
-            self.cooldown_click = 2
-            self.confirm_selection(params)
         
-        # Navegação com mouse
-        mouse_x, mouse_y = params["mouse_events"]["pos"]
-        for i, (x, y, w, h) in enumerate(self.character_positions):
-            if x <= mouse_x <= x + w and y <= mouse_y <= y + h:
-                self.selected_option = i
+        if not self.characters:
+            self.characters = self.load_characters()
 
-        if self.animation_handler:
-            self.animation_handler.updateState(0.05)
+        keys = params["key_events"]
+        mouse_pos = params["mouse_events"]["pos"]
+        mouse_click = params["mouse_events"]["buttons"][0]
 
-        self.cooldown_click -= 1 if self.cooldown_click > 0 else 0
+        if keys["type"] == pygame.KEYDOWN:
+            if keys["key"] == pygame.K_LEFT:
+                self.selected_character = (self.selected_character - 1) % len(self.characters)
+            elif keys["key"] == pygame.K_RIGHT:
+                self.selected_character = (self.selected_character + 1) % len(self.characters)
+            elif keys["key"] == pygame.K_RETURN:
+                self.confirm_selection(params)
+            elif keys["key"] == pygame.K_ESCAPE:
+                self.exit(params)
 
-    def confirm_selection(self, params):
-        """Confirma a seleção do personagem e retorna ao menu principal."""
-        if self.selected_character is None or not self.characters:
-            return None
+        # Verifica clique no personagem
+        if mouse_click and self.cooldown_click <= 0:
+            for i, (x, y) in enumerate(self.character_positions):
+                char_width = self.characters[i]["instance"].width * (1.8 if i == self.selected_character else 1.6)
+                char_height = self.characters[i]["instance"].height * (1.8 if i == self.selected_character else 1.6)
+                char_rect = pygame.Rect(x - char_width // 2, y - char_height // 2, char_width, char_height)
 
-        character_name, module_name = self.characters[self.selected_character]
+                if char_rect.collidepoint(mouse_pos):
+                    self.selected_character = i
+                    self.cooldown_click = 10  # Pequeno cooldown para evitar múltiplos cliques rápidos
+                    break
 
-        try:
-            print(f"✅ Personagem escolhido: {character_name}")
-            params["main_update"]({"selected_character": self.character_instance})
-            self.exit(params)
+        # Atualiza a animação do personagem selecionado
+        if self.characters:
+            self.characters[self.selected_character]["animation_handler"].updateState(0.05)
 
-        except Exception as e:
-            print(f"⚠️ Erro ao carregar personagem {character_name}: {e}")
-            traceback.print_exc()
-
-    def exit(self, params):
-        """Fecha a seleção de personagem e retorna ao menu principal."""
-        print("↩ Retornando ao menu principal...")
-        params["main_update"]({"current_menu": self.MENUS[0]})
-        self.selected_character = None
+        if self.cooldown_click > 0:
+            self.cooldown_click -= 1
 
     def draw(self, screen):
-        """Desenha o menu de seleção de personagem com a animação redimensionada corretamente."""
+        """Desenha o menu de seleção de personagem."""
+        screen.fill((0, 0, 0))
+        
         if self.font is None:
             from assets.fonts.title_font import bitmap_font
             self.font = bitmap_font
 
-        screen_width, screen_height = screen.get_size()
-        if self.background.get_height() != screen_height:
-            factor = screen_width - self.background.get_height()
-            self.background = pygame.transform.scale(self.background, (self.background.get_width() + factor, screen_height))
+        # Redimensiona o background para ocupar toda a tela
+        background_width = screen.get_width()
+        background_height = screen.get_height()
+        scale_background = pygame.transform.scale(self.background, (background_width, background_height))
+        screen.blit(scale_background, (0, 0))
 
-        screen.blit(self.background, (0, 0))
-
+        # Título do menu
         title_surface = self.font.render(self.texts["character_select"]["title"], "white", 32)
-        title_rect = title_surface.get_rect(center=(640, 100))
+        title_rect = title_surface.get_rect(center=(screen.get_width() // 2, 100))
         screen.blit(title_surface, title_rect)
 
-        # Ajuste para espaçamento entre personagens
-        start_y = 250  # Posição inicial para os nomes dos personagens
-        spacing = 50   # Espaçamento entre cada nome
+        # Configuração para posicionamento dos personagens
+        spacing = 200
+        start_x = screen.get_width() // 2
+        start_y = screen.get_height() // 1.6
+        self.character_positions.clear()
 
-        self.character_positions.clear()  # Limpa antes de adicionar os novos valores
+        for i, character in enumerate(self.characters):
+            x = start_x + (i - self.selected_character) * spacing
+            y = start_y
+            self.character_positions.append((x, y))
 
-        for i, (character, _) in enumerate(self.characters):
-            color = "yellow" if i == self.selected_character else "white"
-            text_surface = self.font.render(character, color, 20)
-            
-            text_rect = text_surface.get_rect(center=(640, start_y + i * spacing))  # 🔥 Ajuste aqui
+            # Obtém o sprite correto (apenas o primeiro frame para os não selecionados)
+            sprite = (character["animation_handler"].get_sprite() 
+                      if i == self.selected_character 
+                      else character["animation_handler"].animations["idle"].frames[0])
 
-            self.character_positions.append((text_rect.x, text_rect.y, text_rect.width, text_rect.height))
-            screen.blit(text_surface, text_rect)
+            if sprite:
+                # Define tamanhos diferentes para o personagem selecionado
+                if i == self.selected_character:
+                    width = character["instance"].width * 1.8
+                    height = character["instance"].height * 1.8
+                else:
+                    width = character["instance"].width * 1.6
+                    height = character["instance"].height * 1.6
 
-        if self.animation_handler:
-            current_sprite = self.animation_handler.get_sprite()
-            if current_sprite:
-                width = self.character_instance.width * 1.5
-                height = self.character_instance.height * 1.5
+                scaled_sprite = pygame.transform.scale(sprite, (width, height))
+                sprite_rect = scaled_sprite.get_rect(center=(x, y))
 
-                scaled_sprite = pygame.transform.scale(current_sprite, (width, height))
-                sprite_rect = scaled_sprite.get_rect(center=(640, 440))
+                # Desenha o nome acima do personagem
+                name_surface = self.font.render(character["name"], "white", 16 if i == self.selected_character else 14)
+                name_rect = name_surface.get_rect(center=(x, y - height // 2 - 20))  # Nome acima do personagem
+
+                screen.blit(name_surface, name_rect)
                 screen.blit(scaled_sprite, sprite_rect)
 
+    def confirm_selection(self, params):
+        """Confirma a seleção do personagem e salva no settings.json."""
+        if not self.characters:
+            return
+
+        try:
+            selected_character_data = self.characters[self.selected_character]
+            character_name = selected_character_data["name"]
+            print(f"✅ Personagem escolhido: {character_name}")
+
+            # Atualiza o personagem selecionado e salva no JSON
+            params["main_update"]({
+                "selected_character": selected_character_data["instance"],
+                "settings": {"selected_character": character_name}
+            })
+
+            self.exit(params)
+        except Exception as e:
+            print(f"⚠️ Erro ao carregar personagem: {e}")
+            traceback.print_exc()
+
+    def exit(self, params):
+        """Retorna ao menu principal."""
+        print("↩ Retornando ao menu principal...")
+        params["main_update"]({"current_menu": self.MENUS[0]})
+
     def late_update(self, params):
-        """Método opcional chamado após o update()."""
+        """Atualizações finais do menu."""
         self.draw(params["screen"])

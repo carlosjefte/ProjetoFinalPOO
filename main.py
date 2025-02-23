@@ -12,6 +12,7 @@ from event_manager import EventManager
 from ui.main_menu import MainMenu
 from ui.settings_menu import SettingsMenu
 from ui.character_selection_menu import CharacterSelectMenu
+from scripts.character import Character
 from ui.bitmap_font import BitmapFont
 
 CONFIG_PATH = os.path.join(ROOT_PATH, "config", "settings.json")
@@ -61,6 +62,10 @@ class Main:
         
         self.FADE_SURFACE = pygame.Surface((1280, 720))
         self.FADE_SURFACE.fill((0, 0, 0))
+
+        if "selected_character" in self.SETTINGS:
+            print(f"🔵 Personagem selecionado: {self.SETTINGS['selected_character']}")
+            self.SELECTED_CHARACTER = self.get_character()
         
         while running:
             key_event = {"key": None, "type": None}
@@ -116,6 +121,33 @@ class Main:
         if "current_menu" in params:
             self.start_fade(params["current_menu"])
 
+    def get_character(self):
+        characters = []
+
+        characters_path = os.path.join(ROOT_PATH, "assets", "characters")
+        for file in os.listdir(characters_path):
+            if file.endswith(".py") and file != "__init__.py":
+                character_module = file.replace(".py", "")
+                print(f"🔵 Importando personagem: {character_module}")
+
+                try:
+                    module = __import__(f"assets.characters.{character_module}", fromlist=[character_module])
+                    class_name = character_module.capitalize()  # Assume que a classe tem o mesmo nome do arquivo com a primeira letra maiúscula
+                    character_class = getattr(module, class_name, None)
+
+                    print(f"🔵 Classe encontrada: {character_class}\nNome da Classe: {class_name}")
+
+                    if character_class and issubclass(character_class, Character):
+                        characters.append(character_class())
+                except Exception as e:
+                    print(f"⚠️ Erro ao importar {character_module}: {e}")
+
+        # Busca o personagem correspondente no JSON
+        return next(
+            (char for char in characters if char.__class__.__name__.upper() == self.SETTINGS["selected_character"].upper()),
+            None
+        )
+
     def start_fade(self, next_menu):
         """Inicia a transição de fade para o novo menu."""
         self.FADING = True
@@ -142,11 +174,27 @@ class Main:
         screen.blit(self.FADE_SURFACE, (0, 0))
         pygame.display.update()
 
-    def save_settings(self, settings):
+    def save_settings(self, new_settings):
+        """Atualiza ou adiciona configurações sem remover as existentes."""
         os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
+
+        # Carrega as configurações existentes, se houver
+        if os.path.exists(CONFIG_PATH):
+            with open(CONFIG_PATH, "r", encoding="utf-8") as file:
+                current_settings = json.load(file)
+        else:
+            current_settings = {}
+
+        # Atualiza apenas as chaves fornecidas sem remover as outras
+        current_settings.update(new_settings)
+
+        # Salva de volta no arquivo JSON
         with open(CONFIG_PATH, "w", encoding="utf-8") as file:
-            json.dump(settings, file, indent=4)
-        self.SETTINGS = settings
+            json.dump(current_settings, file, indent=4)
+
+        # Atualiza o dicionário de configurações da classe
+        self.SETTINGS = current_settings
+
         print("💾 Configurações salvas com sucesso!")
 
     def load_settings(self):
@@ -155,7 +203,7 @@ class Main:
                 self.SETTINGS = json.load(file)
             print("🔄 Configurações carregadas com sucesso!")
         else:
-            self.SETTINGS = {"sound": 100, "language": "en", "difficulty": "normal"}
+            self.SETTINGS = {"sound": 100, "language": "en", "difficulty": "normal", "selected_character": None}
             self.save_settings(self.SETTINGS)
             print("⚠️ Nenhuma configuração encontrada. Criando padrão.")
             

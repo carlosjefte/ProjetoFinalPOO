@@ -11,14 +11,13 @@ class Rollerblader(Character):
 
   def __init__(self, x=0, y=0, max_y=260, min_y=10):
     self.name = "Rollerblader"
-    self.speed = 10
+    self.speed = 7
     self.health = 100
     self.strength = 5
     self.agility = 10
     self.intelligence = 5
     self.charisma = 10
-    self.height = 200
-    self.width = 100
+    self.size = 2.2
     animations = {
       "idle": Animation("./assets/sprites/rollerblader/idle.png", "./assets/animations/rollerblader/idle.json", use_velocity=False, loop=True),
       "walk": Animation("./assets/sprites/rollerblader/walk.png", "./assets/animations/rollerblader/walk.json", use_velocity=True, loop=True),
@@ -27,7 +26,7 @@ class Rollerblader(Character):
       "dodge": Animation("./assets/sprites/rollerblader/dodge.png", "./assets/animations/rollerblader/dodge.json", use_velocity=False),
       "fall": Animation("./assets/sprites/rollerblader/fall.png", "./assets/animations/rollerblader/fall.json", use_velocity=True, loop=True),
     }
-    super().__init__(x, y, width=self.width, height=self.height, animations=animations, use_gravity=False, min_y=min_y, max_y=max_y)
+    super().__init__(x, y, width=self.size, height=self.size, animations=animations, use_gravity=False, min_y=min_y, max_y=max_y, speed=self.speed)
 
   def update(self, params):
     super().update(params)

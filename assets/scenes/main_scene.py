@@ -14,11 +14,9 @@ class MainScene(GameScene):
         super().__init__(screen)
 
         # Criando o chão
-        self.ground_y = 800  # Define a posição correta do chão
-        self.ground = Ground(0, self.ground_y, 1280, 50)
-        self.max_y = 800
+        self.ground_y = 700  # Define a posição correta do chão
+        self.max_y = 700
         self.min_y = 10
-        self.add_object(self.ground)
 
         # Carregando os backgrounds
         root_path = os.getenv("ROOT_PATH")
