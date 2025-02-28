@@ -35,6 +35,7 @@ class MainMenu:
         self.backgrounds = []
         self.background = []
         self.bg_width = 0
+
         print("📜 MainMenu carregado!")
 
     def load_texts(self):

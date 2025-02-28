@@ -4,6 +4,7 @@ import os
 sys.path.append(os.getenv("ROOT_PATH"))
 ROOT_PATH = os.getenv("ROOT_PATH")
 from scripts.animation import Animation
+from scripts.car import Car
 
 class Jeep(Car):
     def __init__(self, x, y, width=0, height=0, use_gravity=False, use_collision=False):
@@ -18,8 +19,7 @@ class Jeep(Car):
         :param use_collision: Define se o objeto terá colisão ativa
         """
         animations = {
-            "idle": Animation("./assets/sprites/jeep/idle.png", "./assets/animations/jeep/idle.json", use_velocity=False, loop=True),
-            "move": Animation("./assets/sprites/jeep/move.png", "./assets/animations/jeep/move.json", use_velocity=True, loop=True),
+            "idle": Animation("./assets/sprites/jeep/jeep_drive.png", "./assets/animations/jeep/jeep_drive.json", use_velocity=False, loop=True),
         }
         super().__init__(x, y, animations, width, height, use_gravity, use_collision)
         self.velocity_x = -2  # Velocidade horizontal predeterminada

@@ -1,7 +1,8 @@
 import pygame
-from random import randint
+from random import randint, uniform
 import sys
 import os
+from assets.objects.jeep import Jeep  # Import the Jeep class
 
 sys.path.append(os.getenv("ROOT_PATH"))
 from scripts.game_scene import GameScene
@@ -9,7 +10,7 @@ from assets.objects.ground import Ground
 from assets.characters.rollerblader import Rollerblader
 
 class MainScene(GameScene):
-    """Cena principal do jogo com chão e personagem."""
+    """Cena principal do jogo com chão, personagem e jipes."""
     def __init__(self, screen):
         super().__init__(screen)
 
@@ -33,6 +34,11 @@ class MainScene(GameScene):
 
         self.player = None
 
+        # Jeep spawning logic
+        self.jeeps = []  # Lista de jipes ativos
+        self.last_spawn_time = 0  # Tempo do último spawn
+        self.spawn_interval = randint(2, 5)  # Intervalo inicial entre spawns (em segundos)
+
     def load_and_scale_background(self, image_path):
         """Carrega e reescala o background para que sua altura preencha a tela sem deformação."""
         screen_width, screen_height = self.screen.get_size()
@@ -54,7 +60,7 @@ class MainScene(GameScene):
         return scaled_image
 
     def update(self, params):
-        """Atualiza a cena e impede o personagem de atravessar o chão."""
+        """Atualiza a cena, personagem e spawn de jipes."""
         if params["selected_character"] is None and self.player is None:
             self.player = Rollerblader()
             player_x = 300
@@ -71,10 +77,44 @@ class MainScene(GameScene):
             self.player.set_position(player_x, player_y)
             self.add_object(self.player)
 
+        # Atualiza o spawn de jipes
+        # self.spawn_jeeps(params.get("dt", 0))
+
+        # Atualiza todos os jipes ativos
+        for jeep in self.jeeps:
+            jeep.update(params)
+
         super().update(params)
 
+    def spawn_jeeps(self, dt):
+        """Lógica para spawnar jipes fora da visão do jogador."""
+        self.last_spawn_time += dt
+
+        # Verifica se é hora de spawnar um novo jipe
+        if self.last_spawn_time >= self.spawn_interval:
+            self.last_spawn_time = 0  # Reseta o contador
+            self.spawn_interval = randint(2, 5)  # Define um novo intervalo aleatório
+
+            # Escolhe um lado aleatório para spawnar o jipe (esquerda ou direita)
+            spawn_side = randint(0, 1)  # 0 = esquerda, 1 = direita
+            screen_width, _ = self.screen.get_size()
+
+            # Define a posição inicial do jipe
+            if spawn_side == 0:
+                x = -100  # Fora da tela à esquerda
+                velocity_x = uniform(2, 5)  # Velocidade positiva (movendo para a direita)
+            else:
+                x = screen_width + 100  # Fora da tela à direita
+                velocity_x = uniform(-5, -2)  # Velocidade negativa (movendo para a esquerda)
+
+            # Cria o jipe
+            jeep = Jeep(x, self.ground_y - 50)  # Ajusta a posição Y para o chão
+            jeep.velocity_x = velocity_x  # Define a velocidade
+            self.jeeps.append(jeep)
+            self.add_object(jeep)
+
     def update_background(self):
-        """Aplica parallax no fundo e adiciona/remova fundos conforme necessário."""
+        """Aplica parallax no fundo e adiciona/remove fundos conforme necessário."""
         screen_width, _ = self.screen.get_size()  # Obtém dinamicamente a largura da tela
 
         if self.player is not None and self.player.velocity_x != 0:
@@ -109,7 +149,7 @@ class MainScene(GameScene):
                 self.background.pop(-1)
 
     def draw(self):
-        """Desenha a cena com o fundo, chão e personagem."""
+        """Desenha a cena com o fundo, chão, personagem e jipes."""
         for bg in self.background:
             self.screen.blit(bg["image"], (bg["x"], bg["y"]))
 

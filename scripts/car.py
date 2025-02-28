@@ -2,6 +2,7 @@ import pygame
 from scripts.animation_handler import AnimationHandler
 from scripts.gravity_component import GravityComponent
 from scripts.collision_component import CollisionComponent
+from scripts.objects import Object
 
 class Car(Object):
     def __init__(self, x, y, animations, width=0, height=0, use_gravity=False, use_collision=False):
