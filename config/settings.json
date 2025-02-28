@@ -1,6 +1,6 @@
 {
-    "sound": 100,
+    "sound": "on",
     "language": "en",
-    "difficulty": "normal",
-    "selected_character": "ROLLERBLADER"
+    "difficulty": "medium",
+    "selected_character": "BLAZE"
 }

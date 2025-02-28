@@ -2,10 +2,10 @@ import pygame
 import json
 
 class Animation:
-    def __init__(self, spritesheet_path, json_path, use_velocity=False, loop=True):
+    def __init__(self, spritesheet_path, json_path, use_velocity=False, loop=True, animation_speed=1):
         self.spritesheet = pygame.image.load(spritesheet_path).convert_alpha()
         self.frames = self.load_frames(json_path)
-        self.animation_speed = 1
+        self.animation_speed = animation_speed
         self.current_frame = 0
         self.animation_time = 0
         self.use_velocity = use_velocity
@@ -92,6 +92,10 @@ class Animation:
         if self.flipped:
             frame = pygame.transform.flip(frame, True, False)
         return frame
+
+    def current_frame_index(self):
+        """Retorna o índice do frame atual."""
+        return self.current_frame
 
     def reset(self):
         """Reinicia a animação."""

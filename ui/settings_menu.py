@@ -114,7 +114,7 @@ class SettingsMenu:
                 value = self.settings[option]
                 if option == "difficulty":
                     value = self.texts["difficulty"].get(value, value)
-                text = f"{self.texts['settings'][option]}: {value.upper()}"
+                text = f"{self.texts['settings'][option]}: {value}".upper()
             else:
                 text = self.texts["settings"]["back"]
 
